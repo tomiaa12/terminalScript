@@ -1,0 +1,27 @@
+{
+  "name": "@tomiaa/terminal-script",
+  "version": "0.0.1",
+  "description": "Quickly customize JS scripts on the terminal",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "register": "bash ./register.sh"
+  },
+  "keywords": ["terminal", "script", "node", "cli"],
+  "author": "tomiaa",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomiaa12/terminalScript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tomiaa12/terminalScript/issues"
+  },
+  "homepage": "https://github.com/tomiaa12/terminalScript#readme",
+  "dependencies": {
+    "enquirer": "^2.3.6"
+  }
+}
