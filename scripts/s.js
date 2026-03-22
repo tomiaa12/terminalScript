@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
-import { execSync, spawnSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import Enquirer from 'enquirer';
 const { Select } = Enquirer;
 
@@ -46,8 +46,8 @@ const prompt = new Select({
 const run = async () => {
   const script = await prompt.run();
   console.log(`🚀 正在运行：npm run ${script}\n`);
-  const child = spawnSync('npm', ['run', script], { stdio: 'inherit' });
-  process.exit(child.status);
+  const child = spawn('npm', ['run', script], { stdio: 'inherit', shell: true });
+  child.on('exit', code => process.exit(code ?? 0));
 };
 
 run();
