@@ -159,17 +159,7 @@ async function main() {
   console.log('即将删除以下本地分支：');
   selected.forEach(b => console.log(' -', b));
 
-  // 二次确认
-  const c1 = await Confirm.prompt({
-    message: '确认要删除上述本地分支吗？（这会尝试安全删除：git branch -d，Ctrl+C 可取消）',
-    initial: true
-  });
-  if (!c1) {
-    console.log('取消删除。');
-    process.exit(0);
-  }
-
-  // 执行本地删除（先用 -d）
+  // 执行本地删除（先用 -d，失败则自动强制 -D）
   const { succ, fail } = deleteLocalBranches(selected);
 
   if (succ.length) {
@@ -177,30 +167,19 @@ async function main() {
     succ.forEach(b => console.log(' ✅', b));
   }
   if (fail.length) {
-    console.log('\n无法安全删除（可能未合并或有未保存更改）：');
-    fail.forEach(f => console.log(' ❌', f.name, ' — ', f.error.toString().trim()));
-    // 询问是否强制删除这些失败项
-    const force = await Confirm.prompt({
-      message: '是否对上述失败的分支执行强制删除 (git branch -D)？（Ctrl+C 可取消）',
-      initial: false
-    });
-    if (force) {
-      const failedNames = fail.map(x => x.name);
-      const { succ: succ2, fail: fail2 } = forceDeleteLocalBranches(failedNames);
-      if (succ2.length) {
-        console.log('\n强制删除成功：');
-        succ2.forEach(b => console.log(' ✅', b));
-      }
-      if (fail2.length) {
-        console.log('\n强制删除失败：');
-        fail2.forEach(f => console.log(' ❌', f.name, ' — ', f.error.toString().trim()));
-      }
-      // 把强制删除成功的也算作已删除
-      succ.push(...succ2);
-      // 仍然把未删除的名字保留到 failRemaining
-      const failRemaining = fail2.map(f => f.name).concat(fail.filter(f=>!failedNames.includes(f.name)).map(f=>f.name));
-      // prepare for remote step: only use actually deleted ones (succ)
+    console.log('\n无法安全删除，自动强制删除：');
+    fail.forEach(f => console.log(' ⚠️', f.name, ' — ', f.error.toString().trim()));
+    const failedNames = fail.map(x => x.name);
+    const { succ: succ2, fail: fail2 } = forceDeleteLocalBranches(failedNames);
+    if (succ2.length) {
+      console.log('\n强制删除成功：');
+      succ2.forEach(b => console.log(' ✅', b));
     }
+    if (fail2.length) {
+      console.log('\n强制删除失败：');
+      fail2.forEach(f => console.log(' ❌', f.name, ' — ', f.error.toString().trim()));
+    }
+    succ.push(...succ2);
   }
 
   // 准备远程分支候选：找出远程 refs 包含已删除的本地分支名的那些
