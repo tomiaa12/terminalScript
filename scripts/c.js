@@ -11,9 +11,11 @@ function getBranches() {
     const lines = out.split('\n').map(l => l.replace(/\r$/, '')).filter(Boolean);
     if (lines.length === 0) return null;
     return lines.map(l => {
-      const isCurrent = l.trim().startsWith('*');
-      const name = l.replace(/^[\*\s]+/, '');
-      return { name, isCurrent };
+      const isCurrent = l.startsWith('*');
+      const isWorktree = l.startsWith('+');
+      // git branch 前两列是标记：`* ` 当前、`+ ` 其他 worktree、`  ` 普通
+      const name = l.replace(/^[*+]?\s+/, '').trim();
+      return { name, isCurrent, isWorktree };
     });
   } catch (e) {
     return null;
@@ -51,10 +53,12 @@ function copyToClipboardSync(text) {
     process.exit(1);
   }
 
-  const choices = branches.map(b => ({
-    name: b.name,
-    message: (b.isCurrent ? `* ${b.name}（当前分支）` : b.name)
-  }));
+  const choices = branches.map(b => {
+    let message = b.name;
+    if (b.isCurrent) message = `* ${b.name}（当前分支）`;
+    else if (b.isWorktree) message = `+ ${b.name}（其他 worktree）`;
+    return { name: b.name, message };
+  });
 
   const defaultIndex = branches.findIndex(b => b.isCurrent);
   const select = new enquirer.Select({

@@ -20,9 +20,11 @@ function getBranches() {
     const out = execSync('git branch --no-color', { encoding: 'utf8' });
     const lines = out.split(/\r?\n/).filter(Boolean);
     return lines.map(l => {
-      const isCurrent = l.trim().startsWith('*');
-      const name = l.replace(/^[\*\s]+/, '');
-      return { name, isCurrent };
+      const isCurrent = l.startsWith('*');
+      const isWorktree = l.startsWith('+');
+      // git branch 前两列是标记：`* ` 当前、`+ ` 其他 worktree、`  ` 普通
+      const name = l.replace(/^[*+]?\s+/, '').trim();
+      return { name, isCurrent, isWorktree };
     });
   } catch {
     return null;
@@ -91,10 +93,12 @@ async function interactiveSwitch() {
     process.exit(1);
   }
 
-  const choices = branches.map(b => ({
-    name: b.name,
-    message: b.isCurrent ? `* ${b.name}（当前分支）` : b.name
-  }));
+  const choices = branches.map(b => {
+    let message = b.name;
+    if (b.isCurrent) message = `* ${b.name}（当前分支）`;
+    else if (b.isWorktree) message = `+ ${b.name}（其他 worktree）`;
+    return { name: b.name, message };
+  });
 
   const initial = branches.findIndex(b => b.isCurrent);
   const select = new enquirer.Select({
@@ -116,7 +120,12 @@ async function interactiveSwitch() {
   if (switchBranch(branch)) {
     console.log(`🎉 已切换到分支：${branch}`);
   } else {
-    console.error('❌ 切换失败，请检查是否有未提交的更改。');
+    const target = branches.find(b => b.name === branch);
+    if (target?.isWorktree) {
+      console.error('❌ 该分支已在其他 worktree 中检出，无法在当前仓库直接切换。');
+    } else {
+      console.error('❌ 切换失败，请检查是否有未提交的更改。');
+    }
   }
 }
 
