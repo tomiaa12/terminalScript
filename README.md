@@ -50,6 +50,7 @@ npm run unregister
 | `bd`    | 交互式删除本地分支，可选同时删除远程分支             |
 | `c`     | 从分支列表中选择并复制分支名到剪贴板                 |
 | `ck`    | 无参数时交互式切换分支；带参数时从当前分支新建并切换 |
+| `gp`    | 交互式设置或取消 Git 全局代理，默认端口为 7890       |
 | `l`     | 图形化查看最近 20 条提交记录                         |
 | `p`     | `git pull`                                           |
 | `push`  | `git push`，新分支自动设置 upstream                  |
@@ -75,6 +76,10 @@ ck feature  # 从当前分支创建 feature 分支并切换
 ```bash
 git push --set-upstream origin <当前分支名>
 ```
+
+### `gp` — Git 全局代理
+
+交互式选择 HTTP/HTTPS 代理、SOCKS5 代理或取消代理。设置代理时可手动输入端口，默认端口为 `7890`。
 
 ### `res` — Git Reset 工具
 
